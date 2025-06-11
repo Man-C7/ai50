@@ -130,6 +130,20 @@ while True:
             row.append(rect)
         cells.append(row)
 
+    #Highlight AI safe moves for debugging
+    for cell in ai.safes:
+        if cell not in revealed and cell not in flags:
+            i, j = cell
+            rect = cells[i][j]
+            pygame.draw.rect(screen, (0, 255, 0), rect, 5)
+
+    #Highlight AI known mines for debugging    
+    for cell in ai.mines:
+        if cell not in revealed and cell not in flags:
+            i, j = cell
+            rect = cells[i][j]
+            pygame.draw.rect(screen, (255, 0, 0), rect, 5)
+
     # AI Move button
     aiButton = pygame.Rect(
         (2 / 3) * width + BOARD_PADDING, (1 / 3) * height - 50,

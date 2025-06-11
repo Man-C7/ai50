@@ -196,8 +196,6 @@ class MinesweeperAI():
         self.mark_safe(cell)
         # 3. Add new sentene to Knowledge based based on value of cell and count
         neighbors = set()
-        adjusted_count = count #Count needs to be adjusted each run or else in certain circumstances
-                               # it will count the wrong number of mines or safes 
 
         for i in range(cell[0] - 1, cell[0] + 2):
             for j in range(cell[1] - 1, cell[1] + 2):
@@ -205,11 +203,11 @@ class MinesweeperAI():
                     continue
                 if 0 <= i < self.height and 0 <= j < self.width:
                     if (i,j) in self.mines:
-                        adjusted_count -= 1
+                        count -= 1
                     if (i,j) not in self.moves_made and (i,j) not in self.safes and (i,j) not in self.mines:
                         neighbors.add((i,j))
         if neighbors:
-            self.knowledge.append(Sentence(neighbors, adjusted_count))
+            self.knowledge.append(Sentence(neighbors, count))
 
         # 4. Mark any additonal cells as safe of mines
         for sentence in self.knowledge:
