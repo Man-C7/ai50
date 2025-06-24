@@ -57,7 +57,23 @@ def transition_model(corpus, page, damping_factor):
     linked to by `page`. With probability `1 - damping_factor`, choose
     a link at random chosen from all pages in the corpus.
     """
-    raise NotImplementedError
+    #Create a dictionairy that will have the variables added
+    probabilities = {}
+    #For all pages in corpus set probability to, (1-damping_factor)(1/Number of pages)
+    for key in corpus:
+        probabilities[key] =(1-damping_factor) /len(corpus)
+    #For pages linked to current page, add damping_factor(1/number of linked pages)
+    linked_pages = corpus[page]
+    if linked_pages:
+        for linked_page in linked_pages:
+            probabilities[linked_page] += damping_factor / (len(linked_pages))
+    else:
+        for key in corpus:
+            probabilities[key] += damping_factor / len(corpus)
+
+    return probabilities
+
+    
 
 
 def sample_pagerank(corpus, damping_factor, n):
@@ -69,7 +85,21 @@ def sample_pagerank(corpus, damping_factor, n):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    page_visited_count = {page: 0 for page in corpus}
+    current_page = random.choice(list(corpus.keys()))
+    page_visited_count[current_page] += 1
+
+    for i in range(1, n):
+        current_page_probability = transition_model(corpus, current_page, damping_factor)
+        current_page = random.choices(
+            list(current_page_probability.keys()), 
+            weights=current_page_probability.values(), 
+            k = 1
+        )[0]
+        page_visited_count[current_page] +=1    
+    
+    total_visits = sum(page_visited_count.values())
+    return {page : count / total_visits for page, count in page_visited_count.items()}
 
 
 def iterate_pagerank(corpus, damping_factor):
@@ -81,7 +111,31 @@ def iterate_pagerank(corpus, damping_factor):
     their estimated PageRank value (a value between 0 and 1). All
     PageRank values should sum to 1.
     """
-    raise NotImplementedError
+    probability = {page: 1/len(corpus) for page in corpus}
+
+    while True:
+        adjustments = []
+        for key in corpus:
+            original_probability = probability[key]
+            sum_of_linking_pages_probabilities = 0
+            for page in corpus:
+                if len(corpus[page]) == 0:
+                    sum_of_linking_pages_probabilities += probability[page] / len(corpus)
+                elif key in corpus[page]:
+                    sum_of_linking_pages_probabilities += probability[page] / len(corpus[page])
+            
+            probability[key] = ((1-damping_factor) / len(corpus)) + (damping_factor * sum_of_linking_pages_probabilities)
+
+            new_probability = probability[key]
+            adjustments.append(abs(new_probability-original_probability))
+
+        if max(adjustments) > 0.001:
+            continue
+        else:
+            break
+                
+            
+
 
 
 if __name__ == "__main__":
