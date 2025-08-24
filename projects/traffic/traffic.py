@@ -1,4 +1,4 @@
-import cv2
+import cv2 as cv
 import numpy as np
 import os
 import sys
@@ -58,7 +58,17 @@ def load_data(data_dir):
     be a list of integer labels, representing the categories for each of the
     corresponding `images`.
     """
-    raise NotImplementedError
+    data = ([],[])
+    for root, dirs, files in os.walk(data_dir):
+        for file in files:
+            #path_to_image = os.path.join(root, file)
+            path_to_file = os.path.join(root,file)
+            img = cv.imread(path_to_file)
+            res = cv.resize(img,(IMG_WIDTH, IMG_HEIGHT))
+            label = int(os.path.basename(root))
+            data[0].append(res)
+            data[1].append(label)
+    return data
 
 
 def get_model():
@@ -67,7 +77,43 @@ def get_model():
     `input_shape` of the first layer is `(IMG_WIDTH, IMG_HEIGHT, 3)`.
     The output layer should have `NUM_CATEGORIES` units, one for each category.
     """
-    raise NotImplementedError
+    model = tf.keras.models.Sequential([
+        #Convolution Layer
+        tf.keras.layers.Conv2D(32, (3,3), activation="relu", input_shape=(IMG_WIDTH,IMG_HEIGHT, 3)),
+        tf.keras.layers.BatchNormalization(),
+        #Max Pooling
+        tf.keras.layers.MaxPooling2D(pool_size=(2,2)),
+        #Convolution Layer
+        tf.keras.layers.Conv2D(64, (3,3), activation="relu"),
+        tf.keras.layers.BatchNormalization(),
+        #Max Pooling
+        tf.keras.layers.MaxPooling2D(pool_size=(2,2)),
+        #Convolution Layer
+        tf.keras.layers.Conv2D(128, (3,3), activation="relu"),
+        tf.keras.layers.BatchNormalization(),
+        #Max Pooling
+        tf.keras.layers.MaxPooling2D(pool_size=(2,2)),
+
+        #Flatten Units
+        tf.keras.layers.Flatten(),
+
+        #Add Hidden Layers with Dropout
+        tf.keras.layers.Dense(256, activation="relu"),
+        tf.keras.layers.Dense(256, activation="relu"),
+        tf.keras.layers.Dropout(0.5),
+
+        #Add output layer with output units for all 42 units
+        tf.keras.layers.Dense(NUM_CATEGORIES, activation="softmax")
+    ])
+
+    #train model
+    model.compile(
+        optimizer="adam",
+        loss="categorical_crossentropy",
+        metrics=["accuracy"]
+    )
+
+    return model
 
 
 if __name__ == "__main__":
